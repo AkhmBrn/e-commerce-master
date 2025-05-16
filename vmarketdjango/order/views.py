@@ -94,3 +94,75 @@ def cart(request):
                 {'error': str(e)}, 
                 status=status.HTTP_400_BAD_REQUEST
             )
+
+class CartView(APIView):
+    authentication_classes = [authentication.TokenAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, format=None):
+        # Get the user's cart items (unpaid order items)
+        cart_items = OrderItem.objects.filter(
+            order__user=request.user,
+            order__paid_amount__isnull=True
+        ).select_related('product')
+        serializer = CartItemSerializer(cart_items, many=True)
+        return Response(serializer.data)
+
+    def post(self, request, format=None):
+        product_id = request.data.get('product_id')
+        quantity = request.data.get('quantity', 1)
+
+        try:
+            product = Product.objects.get(id=product_id)
+        except Product.DoesNotExist:
+            return Response(
+                {'error': 'Product not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Get or create an unpaid order for the cart
+        order, created = Order.objects.get_or_create(
+            user=request.user,
+            paid_amount__isnull=True
+        )
+
+        # Create or update the order item
+        try:
+            order_item = OrderItem.objects.get(
+                order=order,
+                product=product
+            )
+            order_item.quantity = quantity
+            order_item.save()
+        except OrderItem.DoesNotExist:
+            order_item = OrderItem.objects.create(
+                order=order,
+                product=product,
+                quantity=quantity,
+                price=product.price
+            )
+
+        serializer = CartItemSerializer(order_item)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def delete(self, request, format=None):
+        product_id = request.query_params.get('product_id')
+        if not product_id:
+            return Response(
+                {'error': 'Product ID is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            order_item = OrderItem.objects.get(
+                order__user=request.user,
+                order__paid_amount__isnull=True,
+                product_id=product_id
+            )
+            order_item.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except OrderItem.DoesNotExist:
+            return Response(
+                {'error': 'Item not found in cart'},
+                status=status.HTTP_404_NOT_FOUND
+            )
