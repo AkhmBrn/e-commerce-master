@@ -10,7 +10,12 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
+import os
 from pathlib import Path
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,14 +25,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-_u(@=3tw2_bbq3pw9i9zcjr1u8fp-f@($rkgsmm$rf_4(mo+^@'
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-default-key-for-development')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
 
 ALLOWED_HOSTS = ["10.0.2.2", "localhost", "127.0.0.1", "*"]
 
-STRIPE_SECRET_KEY = 'sk_test_51MZwUkIphHwt8pQG54Y4PomCfAk4xRVFWHHnqadrXKHERxsWrVSR0DvCC4w3x5T10Bn0FZgUftEruouny4j2bYZ800pFqxVXO5'
+STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY', '')
 
 # Application definition
 

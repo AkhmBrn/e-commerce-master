@@ -11,7 +11,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from .models import Order, OrderItem
-from .serializers import OrderSerializer, MyOrderSerializer
+from .serializers import OrderSerializer, MyOrderSerializer, CartItemSerializer
+from product.models import Product
 
 @api_view(['POST'])
 @authentication_classes([authentication.TokenAuthentication])
@@ -47,3 +48,49 @@ class OrdersList(APIView):
         orders = Order.objects.filter(user=request.user)
         serializer = MyOrderSerializer(orders, many=True)
         return Response(serializer.data)
+
+@api_view(['GET', 'POST'])
+@authentication_classes([authentication.TokenAuthentication])
+@permission_classes([permissions.IsAuthenticated])
+def cart(request):
+    if request.method == 'GET':
+        # Get cart items for the user
+        cart_items = OrderItem.objects.filter(order__isnull=True, order__user=request.user)
+        serializer = CartItemSerializer(cart_items, many=True)
+        return Response(serializer.data)
+    
+    elif request.method == 'POST':
+        try:
+            # Add item to cart
+            product_id = request.data.get('product_id')
+            quantity = int(request.data.get('quantity', 1))
+            
+            product = Product.objects.get(id=product_id)
+            
+            # Create or get pending cart items
+            cart_item, created = OrderItem.objects.get_or_create(
+                order=None,
+                product=product,
+                defaults={
+                    'quantity': quantity,
+                    'price': product.price
+                }
+            )
+            
+            if not created:
+                cart_item.quantity += quantity
+                cart_item.save()
+            
+            serializer = CartItemSerializer(cart_item)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            
+        except Product.DoesNotExist:
+            return Response(
+                {'error': 'Product not found'}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {'error': str(e)}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )

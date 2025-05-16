@@ -4,6 +4,18 @@ from .models import Order, OrderItem
 
 from product.serializers import ProductSerializer
 
+class CartItemSerializer(serializers.ModelSerializer):
+    product = ProductSerializer()
+    
+    class Meta:
+        model = OrderItem
+        fields = (
+            'id',
+            'product',
+            'quantity',
+            'price',
+        )
+
 class MyOrderItemSerializer(serializers.ModelSerializer):    
     product = ProductSerializer()
 
