@@ -9,6 +9,12 @@ import Cart from '../views/Cart.vue'
 import SignUp from '../views/SignUp.vue'
 import LogIn from '../views/LogIn.vue'
 import MyAccount from '../views/MyAccount.vue'
+import Profile from '../views/Profile.vue'
+import Orders from '../views/Orders.vue'
+import OrderDetail from '../views/OrderDetail.vue'
+import Addresses from '../views/Addresses.vue'
+import AddressForm from '../views/AddressForm.vue'
+import Settings from '../views/Settings.vue'
 import Checkout from '../views/Checkout.vue'
 import Success from '../views/Success.vue'
 
@@ -40,11 +46,66 @@ const routes = [
     path: '/sign-up/',
     name: 'SignUp',
     component: SignUp
-  },
-  {
+  },  {
     path: '/my-account/',
     name: 'MyAccount',
     component: MyAccount,
+    meta:{
+      requireLogin: true
+    }
+  },
+  {
+    path: '/my-account/profile',
+    name: 'Profile',
+    component: Profile,
+    meta:{
+      requireLogin: true
+    }
+  },
+  {
+    path: '/my-account/orders',
+    name: 'Orders',
+    component: Orders,
+    meta:{
+      requireLogin: true
+    }
+  },
+  {
+    path: '/my-account/orders/:id',
+    name: 'OrderDetail',
+    component: OrderDetail,
+    meta:{
+      requireLogin: true
+    }
+  },
+  {
+    path: '/my-account/addresses',
+    name: 'Addresses',
+    component: Addresses,
+    meta:{
+      requireLogin: true
+    }
+  },
+  {
+    path: '/my-account/addresses/new',
+    name: 'NewAddress',
+    component: AddressForm,
+    meta:{
+      requireLogin: true
+    }
+  },
+  {
+    path: '/my-account/addresses/:id',
+    name: 'EditAddress',
+    component: AddressForm,
+    meta:{
+      requireLogin: true
+    }
+  },
+  {
+    path: '/my-account/settings',
+    name: 'Settings',
+    component: Settings,
     meta:{
       requireLogin: true
     }

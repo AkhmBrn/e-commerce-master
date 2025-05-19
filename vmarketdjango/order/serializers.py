@@ -1,6 +1,7 @@
 from rest_framework import serializers
+from django.contrib.auth.models import User
 
-from .models import Order, OrderItem
+from .models import Order, OrderItem, Address, UserSettings
 
 from product.serializers import ProductSerializer
 
@@ -22,6 +23,7 @@ class MyOrderItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderItem
         fields = (
+            "id",
             "price",
             "product",
             "quantity",
@@ -43,7 +45,9 @@ class MyOrderSerializer(serializers.ModelSerializer):
             "phone",
             "stripe_token",
             "items",
-            "paid_amount"
+            "paid_amount",
+            "created_at",
+            "status"
         )
 
 class OrderItemSerializer(serializers.ModelSerializer):    
@@ -81,3 +85,74 @@ class OrderSerializer(serializers.ModelSerializer):
             OrderItem.objects.create(order=order, **item_data)
             
         return order
+
+class AddressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Address
+        fields = (
+            "id",
+            "name",
+            "address_line1",
+            "address_line2",
+            "city",
+            "state",
+            "zip_code",
+            "phone",
+            "is_default",
+            "created_at",
+            "updated_at"
+        )
+        read_only_fields = ('id', 'created_at', 'updated_at')
+
+    def create(self, validated_data):
+        user = self.context['request'].user
+        validated_data['user'] = user
+        return super().create(validated_data)
+
+class UserSettingsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserSettings
+        fields = (
+            "id",
+            "language",
+            "currency",
+            "dark_mode",
+            "email_notifications",
+            "order_updates",
+            "promotional_emails",
+            "newsletter",
+            "created_at",
+            "updated_at"
+        )
+        read_only_fields = ('id', 'created_at', 'updated_at')
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = (
+            "id",
+            "username",
+            "email",
+            "first_name",
+            "last_name",
+        )
+        read_only_fields = ('id', 'username', 'email')
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    name = serializers.SerializerMethodField()
+    phone = serializers.CharField(source='profile.phone', required=False, allow_blank=True, allow_null=True)
+    
+    class Meta:
+        model = User
+        fields = (
+            "id",
+            "email",
+            "name",
+            "phone",
+        )
+        read_only_fields = ('id', 'email')
+    
+    def get_name(self, obj):
+        if obj.first_name or obj.last_name:
+            return f"{obj.first_name} {obj.last_name}".strip()
+        return obj.username

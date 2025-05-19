@@ -46,7 +46,6 @@ class ProductProvider with ChangeNotifier {
       rethrow;
     }
   }
-
   Future<void> searchProducts(String query) async {
     try {
       _isLoading = true;
@@ -54,6 +53,15 @@ class ProductProvider with ChangeNotifier {
       notifyListeners();
       
       _products = await _apiService.searchProducts(query);
+      
+      // Log product data for debugging
+      if (kDebugMode) {
+        print('Search returned ${_products.length} products');
+        if (_products.isNotEmpty) {
+          print('First product fields: ${_products.first.keys.join(', ')}');
+          print('Image field value: ${_products.first['image'] ?? _products.first['image_url'] ?? _products.first['get_image'] ?? 'No image field found'}');
+        }
+      }
       
       _isLoading = false;
       notifyListeners();
@@ -66,6 +74,12 @@ class ProductProvider with ChangeNotifier {
 
   void clearCurrentProduct() {
     _currentProduct = null;
+    notifyListeners();
+  }
+
+  void clearSearchResults() {
+    _products = [];
+    _searchQuery = '';
     notifyListeners();
   }
 }

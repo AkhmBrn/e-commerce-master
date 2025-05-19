@@ -6,21 +6,28 @@ import '../providers/cart_provider.dart';
 import '../services/api_constants.dart';
 
 class ProductPage extends StatefulWidget {
-  const ProductPage({super.key});
+  final int? productId;
+  
+  const ProductPage({super.key, this.productId});
 
   @override
   State<ProductPage> createState() => _ProductPageState();
 }
 
-class _ProductPageState extends State<ProductPage> {
-  @override
+class _ProductPageState extends State<ProductPage> {  @override
   void initState() {
     super.initState();
     // Load product details if we have a product ID
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-      if (args != null && args['id'] != null) {
-        context.read<ProductProvider>().fetchProduct(args['id']);
+      // First check widget's productId
+      if (widget.productId != null) {
+        context.read<ProductProvider>().fetchProduct(widget.productId!);
+      } else {
+        // Otherwise check route arguments
+        final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+        if (args != null && args['id'] != null) {
+          context.read<ProductProvider>().fetchProduct(args['id']);
+        }
       }
     });
   }
